@@ -6,11 +6,8 @@
 #include <iostream>
 
 FPEncoder::FPEncoder(double min, double max, int length) {
-	std::cout<<"FPEncoder("<<min<<", "<<max<<", "<<length<<")"<<std::endl;
-    if (length != 1 && length != 2 && length != 4 && length != 8) {
-		std::cerr<<"FPEncoder("<<min<<", "<<max<<", "<<length<<") -> Only 1, 2, 4, and 8 are valid field lengths"<<std::endl;
+    if (length != 1 && length != 2 && length != 4 && length != 8)
         throw std::invalid_argument("Only 1, 2, 4, and 8 are valid field lengths");
-	}
     preCompute(min, max, length);
 }
 
@@ -101,7 +98,6 @@ double FPEncoder::log2(double x) {
 }
 
 void FPEncoder::preCompute(double min, double max, int length) {
-	std::cout<<"preCompute("<<min<<", "<<max<<", "<<length<<")"<<std::endl;
     fieldLength = length;
     a = min;
     b = max;
@@ -150,3 +146,4 @@ uint64_t FPEncoder::readBE64(const std::vector<uint8_t>& v) {
         x = (x << 8) | v[i];
     return x;
 }
+

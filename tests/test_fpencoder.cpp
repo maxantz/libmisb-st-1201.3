@@ -4,7 +4,7 @@
 
 TEST(FpEncoder, TestWithError)
 {
-	FPEncoder encoder = FPEncoder::WithPrecision(0.0, 1e5, 2);
+	FPEncoder encoder = FPEncoder::WithPrecision(0.0, 1e5, 1e-4);
 
 	auto encoded = encoder.Encode(M_PI);
 	EXPECT_EQ(encoded.size(), 4);
