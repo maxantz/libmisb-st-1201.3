@@ -1,36 +1,89 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 
 # Nom du projet
-project(fpencoder CXX)
+project(misb-st-1201.3 LANGUAGES CXX)
 
-# Crée une bibliothèque dynamique à partir de fpencoder.cpp
-add_library(fpencoder SHARED
-    fpencoder.cpp
-    fpencoder.h
+# Choix du standard C++
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# ---------------------------------------
+#          Bibliothèque principale
+# ---------------------------------------
+
+# Récupération automatique des sources
+file(GLOB_RECURSE SOURCES
+    "${PROJECT_SOURCE_DIR}/src/*.cpp"
 )
 
-# Spécifie la version de C++ minimale
-target_compile_features(fpencoder PUBLIC cxx_std_17)
+# Include
+include_directories("${PROJECT_SOURCE_DIR}/include")
+
+# Création de la bibliothèque dynamique
+add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
 # Inclure le dossier courant pour les headers
-target_include_directories(fpencoder PUBLIC
+target_include_directories(${PROJECT_NAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 # Pour assurer une bonne position indépendante du code (utile en shared lib)
-set_target_properties(fpencoder PROPERTIES
+set_target_properties(${PROJECT_NAME} PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
 # Optionnel : définir le nom de sortie (sinon ce sera libfpencoder.so/.dll/.dylib)
-set_target_properties(fpencoder PROPERTIES OUTPUT_NAME "fpencoder")
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "misb-st-1201.3")
 
-# ------------------------------
-# Ajout des tests GoogleTest
-# ------------------------------
-option(FPENCODER_ENABLE_TESTS "Build unit tests" ON)
+# ---------------------------------------
+#          Tests unitaires
+# ---------------------------------------
 
-if (FPENCODER_ENABLE_TESTS)
+# Option pour activer/désactiver les tests
+option(ENABLE_TESTING "Compile and run unit tests" ON)
+
+if (ENABLE_TESTING)
+    include(CTest)
     enable_testing()
-    add_subdirectory(tests)
+
+    # Télécharger GoogleTest automatiquement
+    include(FetchContent)
+    FetchContent_Declare(
+        googletest
+        URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+    )
+    FetchContent_MakeAvailable(googletest)
+
+    # Récupération des fichiers de test
+    file(GLOB_RECURSE TEST_SOURCES
+        "${PROJECT_SOURCE_DIR}/TU/*.cpp"
+    )
+
+    # Création de l'exécutable de test
+    add_executable(${PROJECT_NAME}_tests ${TEST_SOURCES})
+
+    # Inclusion du dossier include/
+    target_include_directories(${PROJECT_NAME}_tests PRIVATE
+        "${PROJECT_SOURCE_DIR}/include"
+        "${PROJECT_SOURCE_DIR}/TU/include"
+    )
+
+    # Link tests avec : la lib + gtest
+    target_link_libraries(${PROJECT_NAME}_tests
+        PRIVATE
+            ${PROJECT_NAME}
+            GTest::gtest
+            GTest::gtest_main
+    )
+
+    # Ajout automatique dans CTest
+    add_test(NAME RunUnitTests COMMAND ${PROJECT_NAME}_tests)
 endif()
+
+# ---------------------------------------
+#       Mode Release par défaut
+# ---------------------------------------
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+

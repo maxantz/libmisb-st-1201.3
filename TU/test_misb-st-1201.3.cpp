@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <cmath>
-#include "fpencoder.h"
+#include "misb-st-1201.3.h"
 
 TEST(FpEncoder, TestWithError)
 {
