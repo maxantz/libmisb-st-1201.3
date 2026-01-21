@@ -23,17 +23,14 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
 # Inclure le dossier courant pour les headers
-target_include_directories(${PROJECT_NAME} PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
+# target_include_directories(${PROJECT_NAME} PUBLIC
+#     "${CMAKE_CURRENT_SOURCE_DIR}/include"
+# )
 
 # Pour assurer une bonne position indépendante du code (utile en shared lib)
 set_target_properties(${PROJECT_NAME} PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
-
-# Optionnel : définir le nom de sortie (sinon ce sera libfpencoder.so/.dll/.dylib)
-set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "misb-st-1201.3")
 
 # ---------------------------------------
 #          Tests unitaires
@@ -53,6 +50,12 @@ if (ENABLE_TESTING)
         URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
     )
     FetchContent_MakeAvailable(googletest)
+
+    # Exclure GoogleTest des cibles installables
+    set_property(TARGET gtest PROPERTY EXCLUDE_FROM_ALL TRUE)
+    set_property(TARGET gtest_main PROPERTY EXCLUDE_FROM_ALL TRUE)
+    set_property(TARGET gmock PROPERTY EXCLUDE_FROM_ALL TRUE)
+    set_property(TARGET gmock_main PROPERTY EXCLUDE_FROM_ALL TRUE)
 
     # Récupération des fichiers de test
     file(GLOB_RECURSE TEST_SOURCES
@@ -86,4 +89,20 @@ endif()
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
+
+# ---------------------------------------
+# Installation
+# ---------------------------------------
+install(TARGETS ${PROJECT_NAME}
+        EXPORT "${PROJECT_NAME}-config"
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}"
+        PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}"
+        PRIVATE_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}"
+        INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
+
+install(EXPORT "${PROJECT_NAME}-config" DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+
+export(TARGETS ${PROJECT_NAME} FILE "${PROJECT_NAME}-exports.cmake")
 
